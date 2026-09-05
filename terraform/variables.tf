@@ -19,6 +19,12 @@ variable "owner_email" {
   description = "The account owner's email - used as the AWS security contact, the identity assigned PersonalAdmin, and the address both login guards check against. Doesn't have to be a Gmail address: it's whatever email is tied to your Google account (Google accounts can be linked to any address), or - if you're using the optional database connection instead - whatever email you sign in with there."
 }
 
+variable "domain_name" {
+  type        = string
+  default     = ""
+  description = "Optional: a domain you already own, to create a Route53 public hosted zone for (shared infrastructure downstream stacks like a game-server template can point their hosted_zone_id at). Leave blank to skip. Doesn't register a new domain - that's a real financial transaction with ongoing renewal costs and real contact/PII fields, not something to automate here."
+}
+
 variable "enable_database_connection" {
   type        = bool
   default     = false
