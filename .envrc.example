@@ -11,6 +11,11 @@ export TF_VAR_aws_account_id="123456789012"
 export TF_VAR_owner_email="you@example.com"
 export TF_VAR_account_owner_phone="+61400000000"
 
+# Optional: creates a Route53 hosted zone for a domain you already own.
+# Leave blank to skip - see domain_name's description for why domain
+# registration itself isn't automated here.
+export TF_VAR_domain_name=""
+
 # Auth0 - create a Machine-to-Machine app in Auth0 with Management API access
 export TF_VAR_auth0_domain=""
 export TF_VAR_auth0_management_client_id=""

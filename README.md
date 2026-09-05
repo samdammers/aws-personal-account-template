@@ -114,6 +114,11 @@ and one manual step instead of a single `terraform apply`.
 - Google login uses **Auth0's shared dev keys**, not a dedicated GCP OAuth
   client - deliberately, to avoid needing a GCP project at all. See
   [Why no GCP OAuth client](#why-no-gcp-oauth-client) below for the tradeoff.
+- **Shared infrastructure other personal stacks can point at**: an
+  `artifacts-<account-id>` S3 bucket for Terraform state (and other
+  build/deploy artifacts), and optionally (`domain_name`) a Route53 public
+  hosted zone for a domain you already own - see
+  [Domain and hosted zone](#domain-and-hosted-zone-optional) below.
 
 ## Cost
 
@@ -266,6 +271,23 @@ redirect URI `https://<your-auth0-domain>/login/callback`), and wire the
 resulting client ID/secret into `auth0_connection.google`'s `options` block
 in `terraform/auth0.tf` (it currently omits `client_id`/`client_secret`
 entirely to use the shared dev keys).
+
+## Domain and hosted zone (optional)
+
+Set `domain_name` to a domain you already own (e.g. `TF_VAR_domain_name="example.com"`
+in `.envrc`) to create a Route53 public hosted zone for it - `terraform/dns.tf`,
+skipped entirely if left blank. This is meant as shared infrastructure: a
+downstream stack (a game server template, for instance) can point its own
+`hosted_zone_id` variable at this stack's `hosted_zone_id` output instead of
+creating its own zone.
+
+This does **not** register a new domain. Registering one is a real financial
+transaction with ongoing renewal costs and real contact/PII fields - not
+something to automate behind a boolean. If your domain is registered
+elsewhere (Namecheap, GoDaddy, etc.), you still need to manually update your
+registrar's nameserver (NS) records to match this stack's
+`hosted_zone_name_servers` output - that's on the registrar's side, not
+something Terraform (or AWS) can reach into for you.
 
 ## No Google account?
 
