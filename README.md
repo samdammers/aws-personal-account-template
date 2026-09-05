@@ -355,3 +355,11 @@ in both guards.
   your account relies on it (check with
   `aws ec2 describe-network-interfaces --filters Name=group-id,Values=<default-sg-id>`
   first if you're not sure).
+
+## Contributing
+
+CI (`.github/workflows/terraform.yml`) runs `terraform fmt`, `validate`, and
+`tflint` against every push and PR - all static checks, no AWS/Auth0
+credentials involved. Dependabot keeps provider versions and the workflow's
+own GitHub Actions up to date. See [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
+for community expectations.
