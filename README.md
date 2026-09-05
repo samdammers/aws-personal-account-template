@@ -23,12 +23,11 @@ both Actions.
 
 ## AI disclosure
 
-This repo was built collaboratively with Claude (Anthropic's AI) - every
-commit's message says so (`Co-Authored-By: Claude`). Security-sensitive
-infrastructure like this deserves extra scrutiny regardless of who or what
-wrote it: read through the Terraform and the caveats below before applying
-any of this to your own account, rather than trusting the README's word for
-what it does.
+This repo was built collaboratively with Claude (Anthropic's AI).
+Security-sensitive infrastructure like this deserves extra scrutiny
+regardless of who or what wrote it: reviewing the Terraform and the caveats
+below yourself is recommended before applying any of this to your own
+account.
 
 ## Architecture
 
