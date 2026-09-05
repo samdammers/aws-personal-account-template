@@ -55,28 +55,6 @@ variable "sso_saml_audience" {
   description = "Issuer/Audience URL from IAM Identity Center SAML metadata. Populated after Apply 1."
 }
 
-# GCP OAuth client - leave blank to use Auth0 dev keys (fine for personal use)
-# Add the hashicorp/google provider back to providers.tf when you need these.
-# tflint-ignore: terraform_unused_declarations
-variable "gcp_project_id" {
-  type        = string
-  default     = ""
-  description = "GCP project ID. Only needed if creating your own OAuth client (Option B)."
-}
-
-variable "google_oauth_client_id" {
-  type        = string
-  default     = ""
-  description = "GCP OAuth 2.0 client ID for Auth0 Google connection. Leave blank to use Auth0 dev keys."
-}
-
-variable "google_oauth_client_secret" {
-  type        = string
-  sensitive   = true
-  default     = ""
-  description = "GCP OAuth 2.0 client secret. Leave blank to use Auth0 dev keys."
-}
-
 variable "account_owner_phone" {
   type        = string
   description = "Phone number for the AWS account security contact (e.g. +61400000000)."

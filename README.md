@@ -111,9 +111,9 @@ and one manual step instead of a single `terraform apply`.
   falls back to, which AWS ships with permissive allow-all rules by default
   (CIS AWS Foundations 5.3). See [Important caveats](#important-caveats)
   before applying if you have something relying on the default SG.
-- Optionally, your own **GCP OAuth 2.0 client** for the Google login instead
-  of Auth0's shared dev keys (recommended once you're past just trying this
-  out - see [GCP OAuth client](#gcp-oauth-client-optional) below)
+- Google login uses **Auth0's shared dev keys**, not a dedicated GCP OAuth
+  client - deliberately, to avoid needing a GCP project at all. See
+  [Why no GCP OAuth client](#why-no-gcp-oauth-client) below for the tradeoff.
 
 ## Cost
 
@@ -237,25 +237,35 @@ terraform apply
 After this, `terraform apply` behaves like any normal stack - the sequencing
 above is only needed for the initial bootstrap.
 
-## GCP OAuth client (optional)
+## Why no GCP OAuth client
 
-Auth0's shared "dev keys" for Google login work fine to start, but they show a
-generic Auth0 consent screen and Google may throttle/warn on them long-term.
-For your own branded OAuth client:
+Google login here always uses Auth0's shared "dev keys" - there's no option
+to supply your own dedicated GCP OAuth client, and no `google` provider or
+GCP project involved anywhere in this stack. That's a deliberate choice, not
+an oversight: setting up a GCP project just to get a branded consent screen
+is real setup work for a personal account, and Auth0's dev keys are more
+than sufficient for one person signing in.
 
-1. [Google Cloud Console](https://console.cloud.google.com/) -> create or
-   select a project.
-2. **APIs & Services -> OAuth consent screen** - External, add your Gmail as a
-   test user.
-3. **APIs & Services -> Credentials -> Create OAuth Client ID** - Web
-   application, with an authorized redirect URI of
-   `https://<your-auth0-domain>/login/callback`.
-4. Put the client ID/secret in `.envrc` as `TF_VAR_google_oauth_client_id` /
-   `TF_VAR_google_oauth_client_secret`.
+**Read this before relying on it long-term.** Auth0's own documentation is
+explicit that dev keys are "meant strictly for testing" and "not intended or
+safe for production environments" - using them can cause "unexpected
+behavior, restricted functionality, or app errors," and they don't work with
+custom domains at all. This repo uses them anyway, on the judgment that a
+personal AWS login gateway is low-volume enough that the practical risk is
+small - but that's a judgment call, not a guarantee, and it's a genuine
+tradeoff against what Auth0 actually built dev keys for. This isn't legal
+advice on whether it breaches Auth0's Terms of Service specifically (check
+[auth0.com/legal](https://auth0.com/legal) yourself for that) - it's a
+technical reliability tradeoff either way. The other cost: the Google
+consent screen shows generic Auth0 branding, not yours.
 
-There's no Terraform resource for the OAuth client itself (`terraform/gcp.tf`
-documents this gap and has commented-out blocks for the two related API
-enablements, if you want to manage those two via the `google` provider).
+If you'd rather have a supported setup, add your own GCP OAuth 2.0 client:
+create a project in the [Google Cloud Console](https://console.cloud.google.com/),
+set up the OAuth consent screen, create an OAuth Client ID (Web application,
+redirect URI `https://<your-auth0-domain>/login/callback`), and wire the
+resulting client ID/secret into `auth0_connection.google`'s `options` block
+in `terraform/auth0.tf` (it currently omits `client_id`/`client_secret`
+entirely to use the shared dev keys).
 
 ## No Google account?
 
