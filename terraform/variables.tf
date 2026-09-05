@@ -57,8 +57,7 @@ variable "sso_saml_audience" {
 
 # GCP OAuth client - leave blank to use Auth0 dev keys (fine for personal use)
 # Add the hashicorp/google provider back to providers.tf when you need these.
-# tflint-ignore: terraform_unused_declarations -- intentionally unused until
-# the commented-out google_project_service resources in gcp.tf are enabled.
+# tflint-ignore: terraform_unused_declarations
 variable "gcp_project_id" {
   type        = string
   default     = ""
