@@ -162,7 +162,7 @@ want to verify this for your own account.
   Machine to Machine, then authorise it for the "Auth0 Management API" with
   whatever scopes it prompts for) - its Domain/Client ID/Client Secret are
   `auth0_domain` / `auth0_management_client_id` / `auth0_management_client_secret`.
-- **Terraform >= 1.6**, and AWS CLI credentials with enough permissions to
+- **Terraform >= 1.16**, and AWS CLI credentials with enough permissions to
   create an AWS Organization, IAM Identity Center resources, SCPs, CloudTrail,
   and S3/CloudFront - for a personal account's own root/admin credentials this
   is generally not an issue.
