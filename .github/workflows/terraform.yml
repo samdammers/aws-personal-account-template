@@ -18,10 +18,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # No explicit terraform_version: an old pinned CLI release only knows
+      # about HashiCorp's previous (since-rotated) provider-signing key, and
+      # fails provider install with "openpgp: key expired" once that key's
+      # validity window passes. Defaulting to latest keeps the trust store
+      # current.
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: "1.6.0"
 
       - name: Format check
         run: terraform fmt -check -recursive
