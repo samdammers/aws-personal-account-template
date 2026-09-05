@@ -1,10 +1,19 @@
 ###############################################################################
 # SCP — security guardrails applied to the org root
+#
+# WARNING: the second statement below denies almost all AWS API activity
+# anywhere outside var.aws_region, for the entire organization. That's a
+# deliberate personal-account choice (one region, one person, no surprise
+# spend/resources appearing somewhere you're not watching) — not something to
+# apply without thinking about it. If you use (or plan to use) other regions —
+# CloudFront's edge locations aside, which are already exempted below along
+# with IAM/Route53/S3/billing/support — either add those services to the
+# NotAction allowlist or remove this statement (and its attachment) entirely.
 ###############################################################################
 
 resource "aws_organizations_policy" "guardrails" {
   name        = "guardrails"
-  description = "Protect CloudTrail from tampering; deny all activity outside ap-southeast-4."
+  description = "Protect CloudTrail from tampering; deny all activity outside var.aws_region."
   type        = "SERVICE_CONTROL_POLICY"
 
   content = jsonencode({
@@ -22,7 +31,7 @@ resource "aws_organizations_policy" "guardrails" {
         Resource = "*"
       },
       {
-        Sid    = "DenyOutsideMelbourne"
+        Sid    = "DenyOutsideAllowedRegion"
         Effect = "Deny"
         NotAction = [
           "account:*",
@@ -57,7 +66,7 @@ resource "aws_organizations_policy" "guardrails" {
         Resource = "*"
         Condition = {
           StringNotEquals = {
-            "aws:RequestedRegion" = "ap-southeast-4"
+            "aws:RequestedRegion" = var.aws_region
           }
         }
       }
