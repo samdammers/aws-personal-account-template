@@ -23,3 +23,6 @@ export TF_VAR_sso_saml_audience=""
 export TF_VAR_gcp_project_id=""
 export TF_VAR_google_oauth_client_id=""
 export TF_VAR_google_oauth_client_secret=""
+
+# Cosmetic — override if you forked/renamed this repo
+# export TF_VAR_repo_tag="your-github-username/your-fork-name"

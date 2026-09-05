@@ -47,6 +47,53 @@ resource "auth0_connection_clients" "google_on_aws" {
   enabled_clients = [auth0_client.aws_saml.client_id]
 }
 
+# --- Guard: only my_gmail_address may complete SSO into AWS ---
+# The Google connection itself accepts *any* Google account — scoping it to
+# the aws_saml client (above) restricts which app can use it, not who can log
+# into that app. IAM Identity Center's own "don't auto-provision users"
+# setting (toggled by hand during the manual activation step — see README) is
+# one backstop against a stranger's login actually granting AWS access, but
+# it's a console setting this repo doesn't manage or verify. This Action is a
+# second, Terraform-managed guard that denies the SAML assertion outright for
+# anyone but the account owner, so someone following the README isn't
+# depending on remembering that unrelated setting to stay safe.
+resource "auth0_action" "restrict_to_owner" {
+  name    = "restrict-google-login-to-owner"
+  runtime = "node18"
+  deploy  = true
+
+  code = <<-EOT
+    exports.onExecutePostLogin = async (event, api) => {
+      // Only guard the AWS SSO app — leave any other Auth0 app/connection alone.
+      if (event.client.client_id !== event.secrets.AWS_SAML_CLIENT_ID) {
+        return;
+      }
+      if (event.user.email !== event.secrets.ALLOWED_EMAIL || !event.user.email_verified) {
+        api.access.deny("unauthorized_email", "This account is not permitted to sign in.");
+      }
+    };
+  EOT
+
+  secrets {
+    name  = "ALLOWED_EMAIL"
+    value = var.my_gmail_address
+  }
+  secrets {
+    name  = "AWS_SAML_CLIENT_ID"
+    value = auth0_client.aws_saml.client_id
+  }
+
+  supported_triggers {
+    id      = "post-login"
+    version = "v3"
+  }
+}
+
+resource "auth0_trigger_action" "restrict_to_owner" {
+  trigger   = "post-login"
+  action_id = auth0_action.restrict_to_owner.id
+}
+
 output "auth0_saml_metadata_url" {
   value       = "https://${var.auth0_domain}/samlp/metadata/${auth0_client.aws_saml.client_id}"
   description = "Paste this URL into IAM Identity Center as the external IdP metadata URL."

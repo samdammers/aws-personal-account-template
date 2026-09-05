@@ -19,6 +19,7 @@ provider "aws" {
   default_tags {
     tags = {
       ManagedBy = "terraform"
+      Repo      = var.repo_tag
     }
   }
 }

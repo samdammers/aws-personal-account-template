@@ -15,6 +15,11 @@ default baked into the repo.
 - **AWS Organizations**, with IAM Identity Center (SSO) enabled
 - **Google login for the AWS console**, via Auth0 acting as a SAML IdP in
   front of IAM Identity Center — no IAM user, no password to manage
+- **A login guard restricting that SSO app to you specifically** — the Google
+  connection itself will authenticate *any* Google account; an Auth0 Action
+  denies the login outright unless the email matches `my_gmail_address`, so a
+  stranger can't complete SSO into your AWS account just by having a Google
+  account (see [Important caveats](#important-caveats))
 - **A Service Control Policy** that (a) protects CloudTrail from being
   disabled/tampered with and (b) — more aggressively — denies almost all AWS
   API activity outside a single region you choose, org-wide. See the warning
@@ -24,6 +29,11 @@ default baked into the repo.
   log retention
 - **Cost Anomaly Detection**, **IAM Access Analyzer**, and an AWS account
   **security contact** — all free
+- **The account's default VPC, adopted, with its default security group
+  locked down to zero rules** — the SG every ENI without an explicit one
+  falls back to, which AWS ships with permissive allow-all rules by default
+  (CIS AWS Foundations 5.3). See [Important caveats](#important-caveats)
+  before applying if you actually have something relying on the default SG.
 - Optionally, your own **GCP OAuth 2.0 client** for the Google login instead
   of Auth0's shared dev keys (recommended once you're past just trying this
   out — see [GCP OAuth client](#gcp-oauth-client-optional) below)
@@ -77,13 +87,21 @@ terraform apply -target=aws_ssoadmin_permission_set.admin -target=aws_ssoadmin_m
 Then, in the AWS Console: **IAM Identity Center → Settings**, copy the **ACS
 URL** and **Issuer URL** from the SAML metadata section into your `.envrc` as
 `TF_VAR_sso_saml_acs_url` / `TF_VAR_sso_saml_audience`, and `direnv allow`
-again.
+again. While you're on that Settings page, also check **Automatic
+provisioning** is **off** — if it's on, any Google account that completes the
+SAML flow gets auto-created as an Identity Center user. Apply 3 below assigns
+access explicitly instead; the Auth0 Action guard (Apply 2) is a second,
+Terraform-managed layer on top of whichever way you leave this console
+setting, not a replacement for checking it.
 
-**Apply 2 — Auth0 SAML app + Google connection:**
+**Apply 2 — Auth0 SAML app + Google connection + login guard:**
 ```bash
-terraform apply -target=auth0_client.aws_saml -target=auth0_connection.google -target=auth0_connection_clients.google_on_aws
+terraform apply -target=auth0_client.aws_saml -target=auth0_connection.google -target=auth0_connection_clients.google_on_aws -target=auth0_trigger_action.restrict_to_owner
 ```
-Note the `auth0_saml_metadata_url` output.
+(`auth0_trigger_action.restrict_to_owner` pulls in `auth0_action.restrict_to_owner`
+automatically — including it here means the login guard is live as soon as the
+SAML app exists, rather than only from Apply 3 onward.) Note the
+`auth0_saml_metadata_url` output.
 
 **Manual step (one-time, provider gap — neither the AWS nor Auth0 Terraform
 provider exposes this):**
@@ -146,3 +164,19 @@ enablements, if you want to manage those two via the `google` provider).
   hand**, before `terraform init` — the `auth0` provider authenticates with
   its credentials, so there's no way to have Terraform create the very
   credentials it needs to run.
+- **The login guard (`auth0_action.restrict_to_owner`) only covers the AWS
+  SAML app** — it checks `event.client.client_id` and returns early for any
+  other Auth0 application, so it won't interfere if you add more apps to this
+  same Auth0 tenant later. It also only fires on a login attempt; it doesn't
+  restrict who's *allowed to be invited/assigned* inside IAM Identity Center
+  itself (that's what turning off automatic provisioning, above, is for) — the
+  two are deliberately layered, not redundant.
+- **`aws_default_vpc`/`aws_default_security_group` adopt pre-existing AWS
+  resources rather than creating new ones** — there's no `terraform import`
+  step needed, but it does mean `terraform plan` will show them as "will be
+  created" the first time even though nothing is actually being created (the
+  provider adopts the account's real default VPC/SG into state instead). The
+  default SG gets locked to zero rules on apply — safe as long as nothing in
+  your account actually relies on it (check with
+  `aws ec2 describe-network-interfaces --filters Name=group-id,Values=<default-sg-id>`
+  first if you're not sure).

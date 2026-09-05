@@ -74,3 +74,9 @@ variable "account_owner_phone" {
   type        = string
   description = "Phone number for the AWS account security contact (e.g. +61400000000)."
 }
+
+variable "repo_tag" {
+  type        = string
+  default     = "samdammers/aws"
+  description = "Value for the Repo default tag applied to every resource this stack creates — override if you forked/renamed this repo."
+}
