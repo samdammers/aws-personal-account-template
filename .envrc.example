@@ -20,11 +20,6 @@ export TF_VAR_auth0_management_client_secret=""
 export TF_VAR_sso_saml_acs_url=""
 export TF_VAR_sso_saml_audience=""
 
-# GCP OAuth client - leave blank to use Auth0 dev keys (fine for personal use)
-export TF_VAR_gcp_project_id=""
-export TF_VAR_google_oauth_client_id=""
-export TF_VAR_google_oauth_client_secret=""
-
 # Cosmetic - override if you forked/renamed this repo
 # export TF_VAR_repo_tag="your-github-username/your-fork-name"
 

@@ -3,11 +3,9 @@ resource "auth0_connection" "google" {
   strategy = "google-oauth2"
 
   options {
-    # Leave client_id/client_secret empty to use Auth0's shared dev keys.
-    # For production, supply your own GCP OAuth 2.0 client credentials.
-    client_id     = var.google_oauth_client_id != "" ? var.google_oauth_client_id : null
-    client_secret = var.google_oauth_client_secret != "" ? var.google_oauth_client_secret : null
-    scopes        = ["email", "profile"]
+    # Deliberately using Auth0's shared dev keys, not a dedicated GCP OAuth
+    # client - see the README for the tradeoff.
+    scopes = ["email", "profile"]
   }
 }
 
