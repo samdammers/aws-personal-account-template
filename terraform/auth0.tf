@@ -47,19 +47,56 @@ resource "auth0_connection_clients" "google_on_aws" {
   enabled_clients = [auth0_client.aws_saml.client_id]
 }
 
-# --- Guard: only my_gmail_address may complete SSO into AWS ---
-# The Google connection itself accepts *any* Google account — scoping it to
-# the aws_saml client (above) restricts which app can use it, not who can log
-# into that app. IAM Identity Center's own "don't auto-provision users"
-# setting (toggled by hand during the manual activation step — see README) is
-# one backstop against a stranger's login actually granting AWS access, but
-# it's a console setting this repo doesn't manage or verify. This Action is a
-# second, Terraform-managed guard that denies the SAML assertion outright for
-# anyone but the account owner, so someone following the README isn't
-# depending on remembering that unrelated setting to stay safe.
+# --- Optional: plain email/password sign-in, no Google account needed ---
+# Skipped (count = 0) unless enable_database_connection is set. disable_signup
+# is reliably enforced for database connections (unlike the unconfirmed case
+# for google-oauth2 below), so the only user that can ever exist here is the
+# one auth0_user creates directly — no post-hoc guard needed.
+resource "auth0_connection" "database" {
+  count    = var.enable_database_connection ? 1 : 0
+  name     = "owner-database"
+  strategy = "auth0"
+
+  options {
+    disable_signup  = true
+    password_policy = "good"
+  }
+}
+
+resource "auth0_connection_clients" "database_on_aws" {
+  count           = var.enable_database_connection ? 1 : 0
+  connection_id   = auth0_connection.database[0].id
+  enabled_clients = [auth0_client.aws_saml.client_id]
+}
+
+# Throwaway password, only to satisfy Auth0's creation requirement — see
+# enable_database_connection's description for why, and the reset step to
+# set a real one.
+resource "random_password" "owner_database" {
+  count            = var.enable_database_connection ? 1 : 0
+  length           = 32
+  special          = true
+  override_special = "!#$%&*()-_=+[]{}<>:?"
+}
+
+resource "auth0_user" "owner" {
+  count           = var.enable_database_connection ? 1 : 0
+  connection_name = auth0_connection.database[0].name
+  email           = var.owner_email
+  password        = random_password.owner_database[0].result
+  email_verified  = true
+}
+
+# --- Guard: only owner_email may complete SSO into AWS ---
+# Checks the authenticated email regardless of which connection was used
+# (Google or the optional database one above). Scoping the Google connection
+# to the aws_saml client (above) restricts which app can use it, not who can
+# log into that app — this Action is what actually restricts who. IAM
+# Identity Center's own "don't auto-provision users" setting (see README) is
+# a second backstop on the AWS side, not a replacement for this.
 resource "auth0_action" "restrict_to_owner" {
-  name    = "restrict-google-login-to-owner"
-  runtime = "node18"
+  name    = "restrict-login-to-owner"
+  runtime = "node22"
   deploy  = true
 
   code = <<-EOT
@@ -68,7 +105,11 @@ resource "auth0_action" "restrict_to_owner" {
       if (event.client.client_id !== event.secrets.AWS_SAML_CLIENT_ID) {
         return;
       }
-      if (event.user.email !== event.secrets.ALLOWED_EMAIL || !event.user.email_verified) {
+      // Case-insensitive: Google normalizes the email claim to lowercase in
+      // practice, but an exact-match comparison has zero slack for a typo'd
+      // ALLOWED_EMAIL or an edge case in casing — this shouldn't be the thing
+      // that locks the account owner out.
+      if (event.user.email.toLowerCase() !== event.secrets.ALLOWED_EMAIL.toLowerCase() || !event.user.email_verified) {
         api.access.deny("unauthorized_email", "This account is not permitted to sign in.");
       }
     };
@@ -76,7 +117,7 @@ resource "auth0_action" "restrict_to_owner" {
 
   secrets {
     name  = "ALLOWED_EMAIL"
-    value = var.my_gmail_address
+    value = var.owner_email
   }
   secrets {
     name  = "AWS_SAML_CLIENT_ID"
@@ -92,6 +133,55 @@ resource "auth0_action" "restrict_to_owner" {
 resource "auth0_trigger_action" "restrict_to_owner" {
   trigger   = "post-login"
   action_id = auth0_action.restrict_to_owner.id
+}
+
+# --- Second guard, at registration time rather than login time ---
+# The post-login guard above only stops a stranger from getting into AWS —
+# Auth0 will still have created a user record for them by that point (social
+# connections have no separate sign-up step to gate). This tries to stop
+# that record from being created at all. Keyed to identity match rather than
+# "does a user already exist," so the owner's own first-ever login is never
+# at risk from this.
+#
+# Extra layer, not a replacement for the post-login guard: (1) unconfirmed
+# whether this trigger fires for social connections at all — if not,
+# harmless no-op; (2) unconfirmed whether `event.client` is populated the
+# same way as in post-login, so the "just this app" scoping may be less
+# precise — defensively checks it exists before reading `.client_id`.
+resource "auth0_action" "restrict_to_owner_pre_registration" {
+  name    = "restrict-registration-to-owner"
+  runtime = "node22"
+  deploy  = true
+
+  code = <<-EOT
+    exports.onExecutePreUserRegistration = async (event, api) => {
+      if (event.client && event.client.client_id !== event.secrets.AWS_SAML_CLIENT_ID) {
+        return;
+      }
+      if (event.user.email.toLowerCase() !== event.secrets.ALLOWED_EMAIL.toLowerCase()) {
+        api.access.deny("unauthorized_email", "This account is not permitted to sign in.");
+      }
+    };
+  EOT
+
+  secrets {
+    name  = "ALLOWED_EMAIL"
+    value = var.owner_email
+  }
+  secrets {
+    name  = "AWS_SAML_CLIENT_ID"
+    value = auth0_client.aws_saml.client_id
+  }
+
+  supported_triggers {
+    id      = "pre-user-registration"
+    version = "v2"
+  }
+}
+
+resource "auth0_trigger_action" "restrict_to_owner_pre_registration" {
+  trigger   = "pre-user-registration"
+  action_id = auth0_action.restrict_to_owner_pre_registration.id
 }
 
 output "auth0_saml_metadata_url" {

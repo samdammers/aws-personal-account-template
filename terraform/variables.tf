@@ -14,9 +14,15 @@ variable "aws_account_id" {
   description = "Your personal AWS account ID (12 digits)."
 }
 
-variable "my_gmail_address" {
+variable "owner_email" {
   type        = string
-  description = "The Gmail address used to sign in to AWS."
+  description = "The account owner's email — used as the AWS security contact, the identity assigned PersonalAdmin, and the address both login guards check against. Doesn't have to be a Gmail address: it's whatever email is tied to your Google account (Google accounts can be linked to any address), or — if you're using the optional database connection instead — whatever email you sign in with there."
+}
+
+variable "enable_database_connection" {
+  type        = bool
+  default     = false
+  description = "Optional: create an Auth0 database connection (plain email/password sign-in, no Google account needed) alongside Google login. Terraform generates a throwaway initial password to satisfy Auth0's user-creation requirement — it's never your real password and isn't meant to be. After applying, trigger a password-reset email for owner_email from the Auth0 dashboard (User Management → Users → your user → Reset Password) so you set your actual password directly through Auth0, which Terraform/state never sees."
 }
 
 # Auth0

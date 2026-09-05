@@ -16,7 +16,7 @@ data "aws_identitystore_user" "me" {
   alternate_identifier {
     unique_attribute {
       attribute_path  = "UserName"
-      attribute_value = var.my_gmail_address
+      attribute_value = var.owner_email
     }
   }
 }

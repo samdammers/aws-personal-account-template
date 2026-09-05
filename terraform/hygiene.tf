@@ -4,8 +4,8 @@
 
 resource "aws_account_alternate_contact" "security" {
   alternate_contact_type = "SECURITY"
-  name                   = var.my_gmail_address
-  email_address          = var.my_gmail_address
+  name                   = var.owner_email
+  email_address          = var.owner_email
   phone_number           = var.account_owner_phone
   title                  = "Account Owner"
 }
@@ -28,7 +28,7 @@ resource "aws_ce_anomaly_subscription" "main" {
 
   subscriber {
     type    = "EMAIL"
-    address = var.my_gmail_address
+    address = var.owner_email
   }
 
   threshold_expression {

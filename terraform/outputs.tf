@@ -21,8 +21,8 @@ output "next_steps" {
         sso_saml_acs_url  = "<acs url>"
         sso_saml_audience = "<issuer url>"
 
-    Apply 2 (Auth0 SAML app + Google connection):
-      terraform apply -target=auth0_client.aws_saml -target=auth0_connection.google -target=auth0_connection_clients.google_on_aws
+    Apply 2 (Auth0 SAML app + Google connection + both login guards):
+      terraform apply -target=auth0_client.aws_saml -target=auth0_connection.google -target=auth0_connection_clients.google_on_aws -target=auth0_trigger_action.restrict_to_owner -target=auth0_trigger_action.restrict_to_owner_pre_registration
 
       Note the auth0_saml_metadata_url output.
 
@@ -35,7 +35,7 @@ output "next_steps" {
         --identity-provider-url "$(terraform output -raw auth0_saml_metadata_url)" \
         --region ${var.aws_region}
 
-    Apply 3 (user assignment — after first Google login):
+    Apply 3 (user assignment — after your first login):
       Uncomment the data + resource blocks in aws_sso.tf, then:
       terraform apply
   EOT
