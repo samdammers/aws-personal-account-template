@@ -5,8 +5,8 @@
 # OAuth 2.0 Web Client credentials. Steps to do it manually in GCP console:
 #
 #   1. Create or select a GCP project
-#   2. APIs & Services → OAuth consent screen (External; add your Gmail as test user)
-#   3. APIs & Services → Credentials → Create OAuth Client ID
+#   2. APIs & Services -> OAuth consent screen (External; add your Gmail as test user)
+#   3. APIs & Services -> Credentials -> Create OAuth Client ID
 #      - Application type: Web application
 #      - Authorized redirect URI: https://<your-auth0-domain>.auth0.com/login/callback
 #   4. Copy client ID + secret into .envrc as TF_VAR_google_oauth_client_id / _secret

@@ -1,13 +1,13 @@
 ###############################################################################
-# SCP — security guardrails applied to the org root
+# SCP - security guardrails applied to the org root
 #
 # WARNING: the second statement below denies almost all AWS API activity
-# anywhere outside var.aws_region, for the entire organization. That's a
+# anywhere outside var.aws_region, for the entire organisation. That's a
 # deliberate personal-account choice (one region, one person, no surprise
-# spend/resources appearing somewhere you're not watching) — not something to
-# apply without thinking about it. If you use (or plan to use) other regions —
+# spend/resources appearing somewhere you're not watching) - not something to
+# apply without thinking about it. If you use (or plan to use) other regions -
 # CloudFront's edge locations aside, which are already exempted below along
-# with IAM/Route53/S3/billing/support — either add those services to the
+# with IAM/Route53/S3/billing/support - either add those services to the
 # NotAction allowlist or remove this statement (and its attachment) entirely.
 ###############################################################################
 

@@ -1,5 +1,5 @@
 ###############################################################################
-# S3 bucket — private, accessible only via CloudFront OAC
+# S3 bucket - private, accessible only via CloudFront OAC
 ###############################################################################
 
 resource "aws_s3_bucket" "images" {
@@ -56,7 +56,7 @@ resource "aws_s3_bucket_policy" "images" {
 }
 
 ###############################################################################
-# CloudFront — long-TTL cache policy + OAC origin
+# CloudFront - long-TTL cache policy + OAC origin
 ###############################################################################
 
 resource "aws_cloudfront_origin_access_control" "images" {

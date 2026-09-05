@@ -51,7 +51,7 @@ resource "auth0_connection_clients" "google_on_aws" {
 # Skipped (count = 0) unless enable_database_connection is set. disable_signup
 # is reliably enforced for database connections (unlike the unconfirmed case
 # for google-oauth2 below), so the only user that can ever exist here is the
-# one auth0_user creates directly — no post-hoc guard needed.
+# one auth0_user creates directly - no post-hoc guard needed.
 resource "auth0_connection" "database" {
   count    = var.enable_database_connection ? 1 : 0
   name     = "owner-database"
@@ -69,7 +69,7 @@ resource "auth0_connection_clients" "database_on_aws" {
   enabled_clients = [auth0_client.aws_saml.client_id]
 }
 
-# Throwaway password, only to satisfy Auth0's creation requirement — see
+# Throwaway password, only to satisfy Auth0's creation requirement - see
 # enable_database_connection's description for why, and the reset step to
 # set a real one.
 resource "random_password" "owner_database" {
@@ -91,7 +91,7 @@ resource "auth0_user" "owner" {
 # Checks the authenticated email regardless of which connection was used
 # (Google or the optional database one above). Scoping the Google connection
 # to the aws_saml client (above) restricts which app can use it, not who can
-# log into that app — this Action is what actually restricts who. IAM
+# log into that app - this Action is what actually restricts who. IAM
 # Identity Center's own "don't auto-provision users" setting (see README) is
 # a second backstop on the AWS side, not a replacement for this.
 resource "auth0_action" "restrict_to_owner" {
@@ -101,13 +101,13 @@ resource "auth0_action" "restrict_to_owner" {
 
   code = <<-EOT
     exports.onExecutePostLogin = async (event, api) => {
-      // Only guard the AWS SSO app — leave any other Auth0 app/connection alone.
+      // Only guard the AWS SSO app - leave any other Auth0 app/connection alone.
       if (event.client.client_id !== event.secrets.AWS_SAML_CLIENT_ID) {
         return;
       }
-      // Case-insensitive: Google normalizes the email claim to lowercase in
+      // Case-insensitive: Google normalises the email claim to lowercase in
       // practice, but an exact-match comparison has zero slack for a typo'd
-      // ALLOWED_EMAIL or an edge case in casing — this shouldn't be the thing
+      // ALLOWED_EMAIL or an edge case in casing - this shouldn't be the thing
       // that locks the account owner out.
       if (event.user.email.toLowerCase() !== event.secrets.ALLOWED_EMAIL.toLowerCase() || !event.user.email_verified) {
         api.access.deny("unauthorized_email", "This account is not permitted to sign in.");
@@ -136,7 +136,7 @@ resource "auth0_trigger_action" "restrict_to_owner" {
 }
 
 # --- Second guard, at registration time rather than login time ---
-# The post-login guard above only stops a stranger from getting into AWS —
+# The post-login guard above only stops a stranger from getting into AWS -
 # Auth0 will still have created a user record for them by that point (social
 # connections have no separate sign-up step to gate). This tries to stop
 # that record from being created at all. Keyed to identity match rather than
@@ -144,10 +144,10 @@ resource "auth0_trigger_action" "restrict_to_owner" {
 # at risk from this.
 #
 # Extra layer, not a replacement for the post-login guard: (1) unconfirmed
-# whether this trigger fires for social connections at all — if not,
+# whether this trigger fires for social connections at all - if not,
 # harmless no-op; (2) unconfirmed whether `event.client` is populated the
 # same way as in post-login, so the "just this app" scoping may be less
-# precise — defensively checks it exists before reading `.client_id`.
+# precise - defensively checks it exists before reading `.client_id`.
 resource "auth0_action" "restrict_to_owner_pre_registration" {
   name    = "restrict-registration-to-owner"
   runtime = "node22"

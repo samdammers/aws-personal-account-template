@@ -1,5 +1,5 @@
 ###############################################################################
-# General-purpose artifacts bucket — a home for Terraform state (other
+# General-purpose artifacts bucket - a home for Terraform state (other
 # personal stacks point their own backend config at this) plus any other
 # build/deploy artifacts.
 ###############################################################################
@@ -34,7 +34,7 @@ resource "aws_s3_bucket_public_access_block" "artifacts" {
 }
 
 # Versioning is what makes this safe as a state bucket (bad apply / accidental
-# delete is recoverable), but left unbounded it grows forever — expire old
+# delete is recoverable), but left unbounded it grows forever - expire old
 # noncurrent versions rather than keeping every one indefinitely.
 resource "aws_s3_bucket_lifecycle_configuration" "artifacts" {
   bucket = aws_s3_bucket.artifacts.id

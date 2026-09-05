@@ -5,7 +5,7 @@ output "image_public_url" {
 
 output "image_s3_bucket" {
   value       = aws_s3_bucket.images.bucket
-  description = "S3 bucket name — upload your image here after apply."
+  description = "S3 bucket name - upload your image here after apply."
 }
 
 output "next_steps" {
@@ -16,7 +16,7 @@ output "next_steps" {
       terraform apply -target=aws_organizations_organization.main
       terraform apply -target=aws_ssoadmin_permission_set.admin -target=aws_ssoadmin_managed_policy_attachment.admin
 
-      Then go to: AWS Console → IAM Identity Center → Settings
+      Then go to: AWS Console -> IAM Identity Center -> Settings
       Copy the ACS URL and Issuer URL into terraform.tfvars as:
         sso_saml_acs_url  = "<acs url>"
         sso_saml_audience = "<issuer url>"
@@ -27,15 +27,15 @@ output "next_steps" {
       Note the auth0_saml_metadata_url output.
 
     Manual step (one-time, provider gap):
-      AWS Console → IAM Identity Center → Settings → Change identity source → External IdP
+      AWS Console -> IAM Identity Center -> Settings -> Change identity source -> External IdP
       Paste the auth0_saml_metadata_url as the IdP metadata URL.
-      — OR —
+      - OR -
       aws sso-admin put-identity-provider-configuration \
         --instance-arn "$(terraform output -raw sso_instance_arn)" \
         --identity-provider-url "$(terraform output -raw auth0_saml_metadata_url)" \
         --region ${var.aws_region}
 
-    Apply 3 (user assignment — after your first login):
+    Apply 3 (user assignment - after your first login):
       Uncomment the data + resource blocks in aws_sso.tf, then:
       terraform apply
   EOT

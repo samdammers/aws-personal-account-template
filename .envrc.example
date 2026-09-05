@@ -1,8 +1,8 @@
 # Copy this to .envrc and fill in your values.
-# .envrc is gitignored — never commit secrets.
+# .envrc is gitignored - never commit secrets.
 # Run `direnv allow` after editing.
 
-# Terraform variables — TF_VAR_* is read automatically by terraform
+# Terraform variables - TF_VAR_* is read automatically by terraform
 # Hardcoded to avoid an empty value if $AWS_DEFAULT_REGION isn't set, and a
 # live AWS call on every direnv reload. Find your account ID with:
 # aws sts get-caller-identity --query Account --output text
@@ -11,7 +11,7 @@ export TF_VAR_aws_account_id="123456789012"
 export TF_VAR_owner_email="you@example.com"
 export TF_VAR_account_owner_phone="+61400000000"
 
-# Auth0 — create a Machine-to-Machine app in Auth0 with Management API access
+# Auth0 - create a Machine-to-Machine app in Auth0 with Management API access
 export TF_VAR_auth0_domain=""
 export TF_VAR_auth0_management_client_id=""
 export TF_VAR_auth0_management_client_secret=""
@@ -20,16 +20,16 @@ export TF_VAR_auth0_management_client_secret=""
 export TF_VAR_sso_saml_acs_url=""
 export TF_VAR_sso_saml_audience=""
 
-# GCP OAuth client — leave blank to use Auth0 dev keys (fine for personal use)
+# GCP OAuth client - leave blank to use Auth0 dev keys (fine for personal use)
 export TF_VAR_gcp_project_id=""
 export TF_VAR_google_oauth_client_id=""
 export TF_VAR_google_oauth_client_secret=""
 
-# Cosmetic — override if you forked/renamed this repo
+# Cosmetic - override if you forked/renamed this repo
 # export TF_VAR_repo_tag="your-github-username/your-fork-name"
 
 # Optional: plain email/password sign-in alongside Google, no Google account
 # needed. Terraform generates the initial password itself (never a real,
-# chosen one) — see enable_database_connection's description for the
+# chosen one) - see enable_database_connection's description for the
 # password-reset step needed after applying.
 # export TF_VAR_enable_database_connection="true"

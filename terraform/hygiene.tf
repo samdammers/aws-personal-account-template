@@ -1,5 +1,5 @@
 ###############################################################################
-# Account security contact — AWS uses this to notify you of security findings
+# Account security contact - AWS uses this to notify you of security findings
 ###############################################################################
 
 resource "aws_account_alternate_contact" "security" {
@@ -11,7 +11,7 @@ resource "aws_account_alternate_contact" "security" {
 }
 
 ###############################################################################
-# Cost Anomaly Detection — free monitor; alerts on unexpected spend patterns
+# Cost Anomaly Detection - free monitor; alerts on unexpected spend patterns
 ###############################################################################
 
 resource "aws_ce_anomaly_monitor" "main" {
@@ -41,7 +41,7 @@ resource "aws_ce_anomaly_subscription" "main" {
 }
 
 ###############################################################################
-# IAM Access Analyzer — account-level (free; finds overly permissive resources)
+# IAM Access Analyzer - account-level (free; finds overly permissive resources)
 ###############################################################################
 
 resource "aws_accessanalyzer_analyzer" "account" {
@@ -50,7 +50,7 @@ resource "aws_accessanalyzer_analyzer" "account" {
 }
 
 ###############################################################################
-# S3 Lifecycle — expire noncurrent versions after 30 days
+# S3 Lifecycle - expire noncurrent versions after 30 days
 # Versioning is already enabled on this bucket (aws_s3_bucket_versioning.images)
 ###############################################################################
 
